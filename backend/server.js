@@ -8,7 +8,7 @@ const pool = mysql.createPool({
     user: "root",
     password: "root",
     database: "todo_db",
-    waitForConnections: true,
+    waitForConnections: true, 
     connectionlimit: 10
 });
 
