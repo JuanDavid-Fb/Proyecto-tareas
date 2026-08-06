@@ -1,5 +1,4 @@
-const { error } = require("console");
-const http= require("http");
+const http = require("http");
 
 const mysql = require("mysql2/promise");
 
@@ -20,20 +19,20 @@ const server = http.createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     if (req.method === "OPTIONS") {
-        res.writeHead(200);
+        res.writeHead(204);
         res.end();
         return;
     }
     
-    if (req.url === "/tasks" && req.method === "GET") {
+    if (req.url === "/task" && req.method === "GET") {
         try {
             //Ejecutamos una consulta  SQL directa usando interpolacion controlada del driver
-            const [rows] = await pool.query("SELECT * FROM tasks");
+            const [rows] = await pool.query("SELECT * FROM task");
 
             res.writeHead(200, { "Content-Type": "application/json" });
             res.end(JSON.stringify({
                 status: "success",
-                data: { tasks: rows }
+                data: { task: rows }
             }));
         } catch (error) {
             res.writeHead(500, { "Content-Type": "application/json" });
@@ -41,7 +40,7 @@ const server = http.createServer(async (req, res) => {
         }
         return;
     }
-    if (req.url === "/tasks" && req.method === "POST") {
+    if (req.url === "/task" && req.method === "POST") {
         let body = "";
         req.on("data", chunk => { body += chunk.toString(); });
         req.on("end", async () => {
@@ -53,7 +52,7 @@ const server = http.createServer(async (req, res) => {
                     res.end(JSON.stringify({ status: "error", message: "Titulo, descripcion y autor obligatorios" }));
                     return;
                 }
-                const sql = "INSERT INTO tasks (title, description, author, is_completed) VALUES (?, ?, ?, 0)";
+                const sql = "INSERT INTO task (title, description, author, is_completed) VALUES (?, ?, ?, 0)";
                 const [result] = await pool.query(sql, [title, description || null, author]);
                 const newTask = {
                     id: result.insertId,
@@ -71,7 +70,7 @@ const server = http.createServer(async (req, res) => {
         });
         return;    
     }
-    if (req.url === "/tasks" && req.method === "PUT") {
+    if (req.url === "/task" && req.method === "PUT") {
         const urlparts = req.url.split("?");
         const taskId = parseInt(urlparts[2]);
         
@@ -83,7 +82,7 @@ const server = http.createServer(async (req, res) => {
                 const { title, description,  is_completed, author } = JSON.parse(body);
 
                 // 1. validar si la tarea existe en la base de datos todo_db
-                const [rows]= await pool.query("SELECT author FROM tasks WHERE id = ?", taskId);
+                const [rows]= await pool.query("SELECT author FROM task WHERE id = ?", taskId);
 
                 if (rows.length === 0){
                     res.writeHead(404, { "Content-Type": "application/json" });
@@ -95,7 +94,7 @@ const server = http.createServer(async (req, res) => {
                     res.writeHead(403, { "content-type": "application/json" });
                     res.end(JSON.stringify({ status: "error", message: `no autorizado. la tarea es de ${row[0].author}` }));
                 }
-                const sql = "UPDATE tasks SET title = ?, description = ?, is_completed = ? WHERE id = ?"
+                const sql = "UPDATE task SET title = ?, description = ?, is_completed = ? WHERE id = ?"
                 await pool.query(sql, [title, description || null, is_completed, taskId]);
                 res.writeHead(200, { "content-type": "application/sjon" });
                 res.end(JSON.stringify({ status: 'success', data: null }));
@@ -106,7 +105,7 @@ const server = http.createServer(async (req, res) => {
             }
         });
     }
-    if (req.url.startsWith('/tasks/') && req.method === 'DELATE') {
+    if (req.url.startsWith('/task/') && req.method === 'DELETE') {
         const urlParts = req.url.split('/');
         const taskId = parseInt(urlParts[2]);
         let body = '';
@@ -117,7 +116,7 @@ const server = http.createServer(async (req, res) => {
                 const { author } = JSON.parse(body);
 
                 // paso A: consultar a mysql si la tarea existe y quien es el dueño
-                const [row] = await pool.query('SELECT author FROM tasks WHERE id = ?', [taskId]);
+                const [row] = await pool.query('SELECT author FROM task WHERE id = ?', [taskId]);
 
                 if (rows.length === 0) {
                     res.writeHead(404, { 'content-Type': 'application/json' });
@@ -134,7 +133,7 @@ const server = http.createServer(async (req, res) => {
                 }
 
                 //paso B: si pasa el filtro, ejecutemos el borrado fisico en la tabla
-                await pool.query('DELATE FROM tasks WHERE id = ?', [taskId]);
+                await pool.query('DELETE FROM task WHERE id = ?', [taskId]);
 
                 res.writeHead(200, { 'content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'success', data: null }));
@@ -153,6 +152,6 @@ const server = http.createServer(async (req, res) => {
 
 const PORT = 3000;
 server.listen(PORT, () => {
-    console.log(`Servidor vanilla con MySQL real corriendo en http://localhost:${PORT}`)
+    console.log(`Servidor vanilla con MySQL real corriendo en http://localhost:${PORT}`);
 });
 
