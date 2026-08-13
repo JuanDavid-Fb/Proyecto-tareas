@@ -1,5 +1,5 @@
 // 1. CONFIGURACIÓN GLOBAL (Apunta a tu servidor nativo)
-const API_URL = 'http://localhost:3000/tasks';
+const API_URL = 'http://localhost:3000/task';
 
 // Intentamos leer si ya existe un nombre guardado en el disco del navegador
 let AUTHOR = localStorage.getItem('todo_author_session');
@@ -79,8 +79,8 @@ async function fetchTasks() {
     const response = await fetch(API_URL);
     const json = await response.json();
 
-    if (json.status === 'success' && json.data.tasks) {
-      renderTasks(json.data.tasks);
+    if (json.status === 'success' && json.data.task) {
+      renderTasks(json.data.task);
     }
   } catch (error) {
     console.error('Error de red:', error);
@@ -244,29 +244,3 @@ logoutBtn.addEventListener('click', () => {
 
 // === INICIALIZACIÓN AL ABRIR LA PÁGINA ===
 checkAuth();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
